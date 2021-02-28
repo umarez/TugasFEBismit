@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import toast, { Toaster } from "react-hot-toast";
 import { FaTrashAlt } from "react-icons/fa";
+import { MapData } from "./components/mapData";
 
 const notify = () => toast.success("Activity Added");
-const notifyDelete = () => toast("Activity Deleted ✔")
+const notifyDelete = () => toast("Activity Deleted ✔");
 
 const App = () => {
   const [startDate, setStartDate] = useState(new Date());
@@ -16,6 +17,7 @@ const App = () => {
   const [data, setData] = useState([]);
   const [change, setChange] = useState(true);
   const [active, setActive] = useState(false);
+  const [searchVal, setSearchVal] = useState("");
 
   const monthArray = [
     "Januari",
@@ -39,20 +41,20 @@ const App = () => {
   }, []);
 
   const handleDate = () => {
-      let monthIndex = startDate.getMonth();
-      let getDay = startDate.getDate();
-      let month = monthArray[monthIndex];
-      let year = startDate.getFullYear();
-      let dueDate = `${getDay} ${month} ${year}`;
+    let monthIndex = startDate.getMonth();
+    let getDay = startDate.getDate();
+    let month = monthArray[monthIndex];
+    let year = startDate.getFullYear();
+    let dueDate = `${getDay} ${month} ${year}`;
 
-      setValue("");
+    setValue("");
 
-      data.push(value);
-      setChange(!change);
-      localStorage.setItem(`${value}`, `${dueDate}`);
-      setLength(localStorage.length);
+    data.push(value);
+    setChange(!change);
+    localStorage.setItem(`${value}`, `${dueDate}`);
+    setLength(localStorage.length);
 
-      notify();
+    notify();
   };
 
   const deleteHandler = (index) => {
@@ -62,24 +64,23 @@ const App = () => {
     notifyDelete();
   };
 
+  const filtered = () => {
+    let dataFiltered = data.filter((data) => {
+      return data.indexOf(searchVal) != -1;
+    });
+    return dataFiltered.map((e, i) => {
+      return <MapData e={e} i={i} deleteHandler={deleteHandler} />;
+    });
+  };
+
   const renderActivity = () => {
-    if (data.length != 0) {
+    if (data.length != 0 && searchVal == "") {
+      data.sort();
       return data.map((e, i) => {
-        return (
-          <div tw="m-5">
-            <h1>{e}</h1>
-            <h1 tw="flex items-center justify-between">
-              Due date : {localStorage.getItem(e)}
-              <span
-                tw="flex items-center justify-center cursor-pointer hover:bg-gray-300 w-10 h-10"
-                onClick={() => deleteHandler(i)}
-              >
-                <FaTrashAlt />
-              </span>
-            </h1>
-          </div>
-        );
+        return <MapData e={e} i={i} deleteHandler={deleteHandler} />;
       });
+    } else {
+      return filtered();
     }
   };
 
@@ -104,7 +105,6 @@ const App = () => {
             onChange={(date) => setStartDate(date)}
             dateFormat="dd/MM/yyyy"
             minDate={new Date()}
-            
             showDisabledMonthNavigation
           />
         </div>
@@ -118,6 +118,15 @@ const App = () => {
             Add
           </button>
           <Toaster />
+        </div>
+        <div tw="flex flex-col w-40 h-full mr-5">
+          <span>Search</span>
+          <input
+            type="text"
+            tw="border-2 border-black "
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+          />
         </div>
       </div>
       <div tw="flex flex-col">{active && renderActivity()}</div>
