@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+// eslint-disable-next-line
 import tw from "twin.macro";
 import DatePicker from "react-datepicker";
 import { useEffect, useState } from "react";
@@ -9,60 +10,54 @@ import Switch from "react-switch";
 
 const notify = () => toast.success("Activity Added");
 const notifyDelete = () => toast("Activity Deleted ✔");
+const notifyFail1 = () => toast.error("Please Input Activity");
+const notifyFail2 = () => toast.error("Please Input Another Activity");
 
 const App = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [value, setValue] = useState("");
   const [length, setLength] = useState(localStorage.length);
+    // eslint-disable-next-line
   const [data, setData] = useState([]);
   const [change, setChange] = useState(true);
   const [active, setActive] = useState(false);
   const [searchVal, setSearchVal] = useState("");
   const [sortDate, setSortDate] = useState(false);
-  // const [dataWDate, setDataWDate] = useState([]);
 
-  const monthArray = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-  ];
+  const monthArray = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November", "Desember"];
 
   useEffect(() => {
     for (let i = 0; i < length; i++) {
       let activity = localStorage.key(i);
       let dueDate = localStorage.getItem(activity).split(" ");
       data.push({ activity: activity, due: dueDate[3] });
-
-      // dataWDate.push({ activity: activity, due: dueDate[3] });
     }
     setActive(!active);
+    // eslint-disable-next-line
   }, []);
 
   const handleDate = () => {
-    let monthIndex = startDate.getMonth();
-    let getDay = startDate.getDate();
-    let month = monthArray[monthIndex];
-    let year = startDate.getFullYear();
-    let date = startDate.toLocaleDateString("pt-BR");
-    let dueDate = `${getDay} ${month} ${year} ${date}`;
+    if (value.trim().length !== 0 && localStorage.getItem(value) === null) {
+      let monthIndex = startDate.getMonth();
+      let getDay = startDate.getDate();
+      let month = monthArray[monthIndex];
+      let year = startDate.getFullYear();
+      let date = startDate.toLocaleDateString("pt-BR");
+      let dueDate = `${getDay} ${month} ${year} ${date}`;
 
-    data.push({ activity: value, due: dueDate.split(" ")[3] });
-    setValue("");
+      data.push({ activity: value, due: dueDate.split(" ")[3] });
+      setValue("");
 
-    // data.push(value);
-    setChange(!change);
-    localStorage.setItem(`${value}`, `${dueDate}`);
-    setLength(localStorage.length);
+      setChange(!change);
+      localStorage.setItem(`${value}`, `${dueDate}`);
+      setLength(localStorage.length);
 
-    notify();
+      notify();
+    } else if (localStorage.getItem(value) !== null) {
+      notifyFail2();
+    } else {
+      notifyFail1();
+    }
   };
 
   const deleteHandler = (index) => {
@@ -70,13 +65,12 @@ const App = () => {
     data.splice(index, 1);
     setChange(!change);
     notifyDelete();
-    // console.log(dataWDate)
   };
 
   const filtered = () => {
     let dataFiltered = data.filter((data) => {
       let dataLower = data.activity.toLowerCase();
-      return dataLower.indexOf(searchVal.toLocaleLowerCase()) != -1;
+      return dataLower.indexOf(searchVal.toLocaleLowerCase()) !== -1;
     });
     return dataFiltered.map((e, i) => {
       return <MapData e={e.activity} i={i} deleteHandler={deleteHandler} />;
@@ -85,15 +79,15 @@ const App = () => {
 
   const renderActivity = () => {
     if (!sortDate) {
-      console.log(`masuk`);
-      data.sort((a, b) => (a.activity.toLowerCase() > b.activity.toLocaleLowerCase() ? 1 : -1));
-      console.log(data)
+      data.sort((a, b) =>
+        a.activity.toLowerCase() > b.activity.toLocaleLowerCase() ? 1 : -1
+      );
     } else {
       data.sort((a, b) => {
         return new Date(a.due).valueOf() - new Date(b.due).valueOf();
       });
     }
-    if (data.length != 0 && searchVal == "") {
+    if (data.length !== 0 && searchVal === "") {
       return data.map((e, i) => {
         return <MapData e={e.activity} i={i} deleteHandler={deleteHandler} />;
       });
