@@ -4,8 +4,8 @@ import DatePicker from "react-datepicker";
 import { useEffect, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import toast, { Toaster } from "react-hot-toast";
-import { FaTrashAlt } from "react-icons/fa";
 import { MapData } from "./components/mapData";
+import Switch from "react-switch";
 
 const notify = () => toast.success("Activity Added");
 const notifyDelete = () => toast("Activity Deleted ✔");
@@ -18,6 +18,8 @@ const App = () => {
   const [change, setChange] = useState(true);
   const [active, setActive] = useState(false);
   const [searchVal, setSearchVal] = useState("");
+  const [sortDate, setSortDate] = useState(false);
+  const [dataWDate, setDataWDate] = useState([]);
 
   const monthArray = [
     "Januari",
@@ -35,7 +37,11 @@ const App = () => {
 
   useEffect(() => {
     for (let i = 0; i < length; i++) {
+      let activity = localStorage.key(i);
+      let dueDate = localStorage.getItem(activity).split(" ");
       data.push(localStorage.key(i));
+      dataWDate.push({ activity: activity, due: dueDate[3] });
+
     }
     setActive(!active);
   }, []);
@@ -45,8 +51,10 @@ const App = () => {
     let getDay = startDate.getDate();
     let month = monthArray[monthIndex];
     let year = startDate.getFullYear();
-    let dueDate = `${getDay} ${month} ${year}`;
+    let date = startDate.toLocaleDateString("pt-BR");
+    let dueDate = `${getDay} ${month} ${year} ${date}`;
 
+    dataWDate.push({ activity: value, due: dueDate.split(" ")[3] });
     setValue("");
 
     data.push(value);
@@ -59,28 +67,46 @@ const App = () => {
 
   const deleteHandler = (index) => {
     localStorage.removeItem(data[index]);
+    dataWDate.splice(index, 1)
     data.splice(index, 1);
     setChange(!change);
     notifyDelete();
+    // console.log(dataWDate)
   };
 
   const filtered = () => {
     let dataFiltered = data.filter((data) => {
-      return data.indexOf(searchVal) != -1;
+      let dataLower = data.toLowerCase();
+      return dataLower.indexOf(searchVal.toLocaleLowerCase()) != -1;
     });
     return dataFiltered.map((e, i) => {
       return <MapData e={e} i={i} deleteHandler={deleteHandler} />;
     });
   };
 
+  const dataSortByDate = () => {
+    console.log(dataWDate)
+    dataWDate.sort((a, b) => {
+      return new Date(a.due).valueOf() - new Date(b.due).valueOf();
+    });
+    return dataWDate.map((e, i) => {
+      console.log('Masuk sini anjing')
+      return <MapData e={e.activity} i={i} deleteHandler={deleteHandler} />;
+    });
+  };
+
   const renderActivity = () => {
-    if (data.length != 0 && searchVal == "") {
+    if (!sortDate) {
       data.sort();
-      return data.map((e, i) => {
-        return <MapData e={e} i={i} deleteHandler={deleteHandler} />;
-      });
+      if (data.length != 0 && searchVal == "") {
+        return data.map((e, i) => {
+          return <MapData e={e} i={i} deleteHandler={deleteHandler} />;
+        });
+      } else {
+        return filtered();
+      }
     } else {
-      return filtered();
+      return dataSortByDate();
     }
   };
 
@@ -128,6 +154,16 @@ const App = () => {
             onChange={(e) => setSearchVal(e.target.value)}
           />
         </div>
+        <Switch
+          height={30}
+          width={80}
+          onChange={() => {
+            setSortDate(!sortDate);
+          }}
+          checked={sortDate}
+          checkedIcon={<div tw="flex justify-center items-center h-full">Date</div>}
+          uncheckedIcon={<div tw="flex justify-center items-center h-full">Name</div>}
+        />
       </div>
       <div tw="flex flex-col">{active && renderActivity()}</div>
     </div>
