@@ -1,85 +1,98 @@
 /** @jsxImportSource @emotion/react */
+// eslint-disable-next-line
 import tw from "twin.macro";
 import DatePicker from "react-datepicker";
 import { useEffect, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import toast, { Toaster } from "react-hot-toast";
-import { FaTrashAlt } from "react-icons/fa";
+import { MapData } from "./components/mapData";
+import Switch from "react-switch";
 
 const notify = () => toast.success("Activity Added");
-const notifyDelete = () => toast("Activity Deleted ✔")
+const notifyDelete = () => toast("Activity Deleted ✔");
+const notifyFail1 = () => toast.error("Please Input Activity");
+const notifyFail2 = () => toast.error("Please Input Another Activity");
 
 const App = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [value, setValue] = useState("");
   const [length, setLength] = useState(localStorage.length);
+    // eslint-disable-next-line
   const [data, setData] = useState([]);
   const [change, setChange] = useState(true);
   const [active, setActive] = useState(false);
+  const [searchVal, setSearchVal] = useState("");
+  const [sortDate, setSortDate] = useState(false);
 
-  const monthArray = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-  ];
+  const monthArray = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November", "Desember"];
 
   useEffect(() => {
     for (let i = 0; i < length; i++) {
-      data.push(localStorage.key(i));
+      let activity = localStorage.key(i);
+      let dueDate = localStorage.getItem(activity).split(" ");
+      data.push({ activity: activity, due: dueDate[3] });
     }
     setActive(!active);
+    // eslint-disable-next-line
   }, []);
 
   const handleDate = () => {
+    if (value.trim().length !== 0 && localStorage.getItem(value) === null) {
       let monthIndex = startDate.getMonth();
       let getDay = startDate.getDate();
       let month = monthArray[monthIndex];
       let year = startDate.getFullYear();
-      let dueDate = `${getDay} ${month} ${year}`;
+      let date = startDate.toLocaleDateString("pt-BR");
+      let dueDate = `${getDay} ${month} ${year} ${date}`;
 
+      data.push({ activity: value, due: dueDate.split(" ")[3] });
       setValue("");
 
-      data.push(value);
       setChange(!change);
       localStorage.setItem(`${value}`, `${dueDate}`);
       setLength(localStorage.length);
 
       notify();
+    } else if (localStorage.getItem(value) !== null) {
+      notifyFail2();
+    } else {
+      notifyFail1();
+    }
   };
 
   const deleteHandler = (index) => {
-    localStorage.removeItem(data[index]);
+    localStorage.removeItem(data[index].activity);
     data.splice(index, 1);
     setChange(!change);
     notifyDelete();
   };
 
+  const filtered = () => {
+    let dataFiltered = data.filter((data) => {
+      let dataLower = data.activity.toLowerCase();
+      return dataLower.indexOf(searchVal.toLocaleLowerCase()) !== -1;
+    });
+    return dataFiltered.map((e, i) => {
+      return <MapData e={e.activity} i={i} deleteHandler={deleteHandler} />;
+    });
+  };
+
   const renderActivity = () => {
-    if (data.length != 0) {
-      return data.map((e, i) => {
-        return (
-          <div tw="m-5">
-            <h1>{e}</h1>
-            <h1 tw="flex items-center justify-between">
-              Due date : {localStorage.getItem(e)}
-              <span
-                tw="flex items-center justify-center cursor-pointer hover:bg-gray-300 w-10 h-10"
-                onClick={() => deleteHandler(i)}
-              >
-                <FaTrashAlt />
-              </span>
-            </h1>
-          </div>
-        );
+    if (!sortDate) {
+      data.sort((a, b) =>
+        a.activity.toLowerCase() > b.activity.toLocaleLowerCase() ? 1 : -1
+      );
+    } else {
+      data.sort((a, b) => {
+        return new Date(a.due).valueOf() - new Date(b.due).valueOf();
       });
+    }
+    if (data.length !== 0 && searchVal === "") {
+      return data.map((e, i) => {
+        return <MapData e={e.activity} i={i} deleteHandler={deleteHandler} />;
+      });
+    } else {
+      return filtered();
     }
   };
 
@@ -104,7 +117,6 @@ const App = () => {
             onChange={(date) => setStartDate(date)}
             dateFormat="dd/MM/yyyy"
             minDate={new Date()}
-            
             showDisabledMonthNavigation
           />
         </div>
@@ -119,6 +131,29 @@ const App = () => {
           </button>
           <Toaster />
         </div>
+        <div tw="flex flex-col w-40 h-full mr-5">
+          <span>Search</span>
+          <input
+            type="text"
+            tw="border-2 border-black "
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+          />
+        </div>
+        <Switch
+          height={30}
+          width={80}
+          onChange={() => {
+            setSortDate(!sortDate);
+          }}
+          checked={sortDate}
+          checkedIcon={
+            <div tw="flex justify-center items-center h-full">Date</div>
+          }
+          uncheckedIcon={
+            <div tw="flex justify-center items-center h-full">Name</div>
+          }
+        />
       </div>
       <div tw="flex flex-col">{active && renderActivity()}</div>
     </div>

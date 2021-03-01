@@ -16,6 +16,7 @@
     "react-hot-toast": "^1.0.2",
     "react-icons": "^4.2.0",
     "react-scripts": "4.0.3",
+    "react-switch": "^6.0.0",
     "styled-components": "^5.2.1",
     "twin.macro": "^1.12.1",
     "web-vitals": "^1.1.0"
