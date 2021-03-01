@@ -4,8 +4,6 @@ import { FaTrashAlt } from "react-icons/fa";
 import "twin.macro";
 
 export const MapData = ({ e, i, deleteHandler }) => {
-  console.log(e)
-  console.log(localStorage)
   if (localStorage.getItem(e) !== null) {
     let dueDate = localStorage.getItem(e).split(" ").slice(0, 3).join(" ");
 

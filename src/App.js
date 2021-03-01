@@ -19,7 +19,7 @@ const App = () => {
   const [active, setActive] = useState(false);
   const [searchVal, setSearchVal] = useState("");
   const [sortDate, setSortDate] = useState(false);
-  const [dataWDate, setDataWDate] = useState([]);
+  // const [dataWDate, setDataWDate] = useState([]);
 
   const monthArray = [
     "Januari",
@@ -39,9 +39,9 @@ const App = () => {
     for (let i = 0; i < length; i++) {
       let activity = localStorage.key(i);
       let dueDate = localStorage.getItem(activity).split(" ");
-      data.push(localStorage.key(i));
-      dataWDate.push({ activity: activity, due: dueDate[3] });
+      data.push({ activity: activity, due: dueDate[3] });
 
+      // dataWDate.push({ activity: activity, due: dueDate[3] });
     }
     setActive(!active);
   }, []);
@@ -54,10 +54,10 @@ const App = () => {
     let date = startDate.toLocaleDateString("pt-BR");
     let dueDate = `${getDay} ${month} ${year} ${date}`;
 
-    dataWDate.push({ activity: value, due: dueDate.split(" ")[3] });
+    data.push({ activity: value, due: dueDate.split(" ")[3] });
     setValue("");
 
-    data.push(value);
+    // data.push(value);
     setChange(!change);
     localStorage.setItem(`${value}`, `${dueDate}`);
     setLength(localStorage.length);
@@ -66,8 +66,7 @@ const App = () => {
   };
 
   const deleteHandler = (index) => {
-    localStorage.removeItem(data[index]);
-    dataWDate.splice(index, 1)
+    localStorage.removeItem(data[index].activity);
     data.splice(index, 1);
     setChange(!change);
     notifyDelete();
@@ -76,37 +75,30 @@ const App = () => {
 
   const filtered = () => {
     let dataFiltered = data.filter((data) => {
-      let dataLower = data.toLowerCase();
+      let dataLower = data.activity.toLowerCase();
       return dataLower.indexOf(searchVal.toLocaleLowerCase()) != -1;
     });
     return dataFiltered.map((e, i) => {
-      return <MapData e={e} i={i} deleteHandler={deleteHandler} />;
-    });
-  };
-
-  const dataSortByDate = () => {
-    console.log(dataWDate)
-    dataWDate.sort((a, b) => {
-      return new Date(a.due).valueOf() - new Date(b.due).valueOf();
-    });
-    return dataWDate.map((e, i) => {
-      console.log('Masuk sini anjing')
       return <MapData e={e.activity} i={i} deleteHandler={deleteHandler} />;
     });
   };
 
   const renderActivity = () => {
     if (!sortDate) {
-      data.sort();
-      if (data.length != 0 && searchVal == "") {
-        return data.map((e, i) => {
-          return <MapData e={e} i={i} deleteHandler={deleteHandler} />;
-        });
-      } else {
-        return filtered();
-      }
+      console.log(`masuk`);
+      data.sort((a, b) => (a.activity.toLowerCase() > b.activity.toLocaleLowerCase() ? 1 : -1));
+      console.log(data)
     } else {
-      return dataSortByDate();
+      data.sort((a, b) => {
+        return new Date(a.due).valueOf() - new Date(b.due).valueOf();
+      });
+    }
+    if (data.length != 0 && searchVal == "") {
+      return data.map((e, i) => {
+        return <MapData e={e.activity} i={i} deleteHandler={deleteHandler} />;
+      });
+    } else {
+      return filtered();
     }
   };
 
@@ -161,8 +153,12 @@ const App = () => {
             setSortDate(!sortDate);
           }}
           checked={sortDate}
-          checkedIcon={<div tw="flex justify-center items-center h-full">Date</div>}
-          uncheckedIcon={<div tw="flex justify-center items-center h-full">Name</div>}
+          checkedIcon={
+            <div tw="flex justify-center items-center h-full">Date</div>
+          }
+          uncheckedIcon={
+            <div tw="flex justify-center items-center h-full">Name</div>
+          }
         />
       </div>
       <div tw="flex flex-col">{active && renderActivity()}</div>
