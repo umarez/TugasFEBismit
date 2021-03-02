@@ -7,6 +7,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import toast, { Toaster } from "react-hot-toast";
 import { MapData } from "./components/mapData";
 import Switch from "react-switch";
+import { MdDateRange } from "react-icons/md";
+import { IoMdListBox } from "react-icons/io";
+import { FcSearch } from "react-icons/fc";
 
 const notify = () => toast.success("Activity Added");
 const notifyDelete = () => toast("Activity Deleted ✔");
@@ -17,14 +20,27 @@ const App = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [value, setValue] = useState("");
   const [length, setLength] = useState(localStorage.length);
-    // eslint-disable-next-line
+  // eslint-disable-next-line
   const [data, setData] = useState([]);
   const [change, setChange] = useState(true);
   const [active, setActive] = useState(false);
   const [searchVal, setSearchVal] = useState("");
   const [sortDate, setSortDate] = useState(false);
 
-  const monthArray = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November", "Desember"];
+  const monthArray = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
 
   useEffect(() => {
     for (let i = 0; i < length; i++) {
@@ -42,10 +58,10 @@ const App = () => {
       let getDay = startDate.getDate();
       let month = monthArray[monthIndex];
       let year = startDate.getFullYear();
-      let date = startDate.toLocaleDateString("pt-BR");
-      let dueDate = `${getDay} ${month} ${year} ${date}`;
-
-      data.push({ activity: value, due: dueDate.split(" ")[3] });
+      let dueDate = `${month} ${getDay}th ${year}`;
+      let due = `${monthIndex+1}/${getDay}/${year}`
+      
+      data.push({ activity: value, due: due });
       setValue("");
 
       setChange(!change);
@@ -64,7 +80,9 @@ const App = () => {
     localStorage.removeItem(data[index].activity);
     data.splice(index, 1);
     setChange(!change);
-    notifyDelete();
+    setTimeout(() => {
+      notifyDelete();
+    }, 500);
   };
 
   const filtered = () => {
@@ -78,13 +96,14 @@ const App = () => {
   };
 
   const renderActivity = () => {
+    
     if (!sortDate) {
       data.sort((a, b) =>
         a.activity.toLowerCase() > b.activity.toLocaleLowerCase() ? 1 : -1
       );
     } else {
       data.sort((a, b) => {
-        return new Date(a.due).valueOf() - new Date(b.due).valueOf();
+        return new Date(a.due).getTime() - new Date(b.due).getTime() ;
       });
     }
     if (data.length !== 0 && searchVal === "") {
@@ -97,66 +116,118 @@ const App = () => {
   };
 
   return (
-    <div tw="flex flex-col ">
-      <div tw="flex flex-row items-end">
-        <div tw="flex flex-col w-40 h-full mr-5">
-          <span>Task Name</span>
-          <input
-            type="text"
-            tw="border-2 border-black "
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
+    <>
+      <div tw="flex flex-col justify-center items-center w-screen md:w-full ">
+        <div tw="flex bg-indigo-800 w-screen justify-center items-center shadow-md h-24">
+          <h1 tw="text-3xl md:text-5xl text-white font-akaya">
+            To Do Organizer
+          </h1>
         </div>
+        <div tw="flex flex-col w-full flex-wrap md:w-10/12 lg:w-1/2 mt-5 ">
+          <div tw="flex flex-row flex-wrap pl-2 md:pl-0 md:flex-no-wrap items-end">
+            <div tw="flex flex-col w-full h-full mr-5 font-kanit">
+              <div tw="flex items-center">
+                <span tw="mr-2">
+                  <span>
+                    <h1 tw="text-xl">Task Name</h1>
+                  </span>
+                </span>
+                <IoMdListBox />
+              </div>
+              <input
+                type="text"
+                tw="border border-black focus:outline-none"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+              />
+            </div>
 
-        <div tw="flex flex-col w-auto h-full">
-          <span>Due Date</span>
-          <DatePicker
-            tw="border-2 border-black text-gray-600"
-            selected={startDate}
-            onChange={(date) => setStartDate(date)}
-            dateFormat="dd/MM/yyyy"
-            minDate={new Date()}
-            showDisabledMonthNavigation
-          />
+            <div tw="flex flex-col w-auto h-full font-kanit">
+              <div tw="flex items-center">
+                <span tw="mr-2">
+                  <h1 tw="text-xl">Due Date</h1>
+                </span>
+                <MdDateRange />
+              </div>
+
+              <DatePicker
+                tw="border border-black text-gray-600"
+                selected={startDate}
+                onChange={(date) => setStartDate(date)}
+                dateFormat="MM/dd/yyyy"
+                minDate={new Date()}
+                showDisabledMonthNavigation
+              />
+            </div>
+            <div tw="ml-5">
+              <button
+                onClick={() => {
+                  handleDate();
+                }}
+                tw="bg-blueDark hover:bg-blue-700 py-1 px-5 rounded-sm font-kanit hover:text-gray-300 text-white"
+              >
+                Add
+              </button>
+              <Toaster />
+            </div>
+          </div>
+          <div tw="flex justify-center mt-5">
+            <span tw="bg-gray-900 w-11/12 md:w-full h-2"></span>
+          </div>
+          <div tw="flex items-end w-full justify-between pl-4 pr-4 md:pr-0 md:pl-0 font-kanit">
+            <div tw="flex flex-col w-40 h-full mr-5 mt-5 pb-1">
+              <div tw="flex items-center">
+                <h1 tw="text-xl">Search</h1>
+                <FcSearch />
+              </div>
+              <input
+                type="text"
+                tw="border border-black "
+                value={searchVal}
+                onChange={(e) => setSearchVal(e.target.value)}
+                size="100"
+                placeholder="Search for activity..."
+              />
+            </div>
+            <div
+              css={{ "@media (max-width: 325px)": { flexDirection: "column" } }}
+              tw="flex items-center font-poppins"
+            >
+              <h1 tw="pr-4 text-lg lg:text-xl">Sort By</h1>
+              <Switch
+                height={40}
+                width={85}
+                handleDiameter={28}
+                borderRadius={6}
+                onChange={() => {
+                  setSortDate(!sortDate);
+                }}
+                checked={sortDate}
+                checkedIcon={
+                  <div tw="flex pl-2 items-center h-full text-white text-sm">
+                    Date
+                  </div>
+                }
+                uncheckedIcon={
+                  <div tw="flex justify-center items-center h-full text-white text-sm">
+                    Name
+                  </div>
+                }
+              />
+            </div>
+          </div>
+          <div tw="flex flex-col items-center mt-10 p-5 sm:p-0" >
+            {data.length !== 0 ? (
+              renderActivity()
+            ) : (
+              <h1 tw="mt-10 text-3xl md:text-4xl font-poppins text-gray-700">
+                No Activity
+              </h1>
+            )}
+          </div>
         </div>
-        <div tw="ml-5">
-          <button
-            onClick={() => {
-              handleDate();
-            }}
-            tw="bg-gray-700 hover:bg-gray-400 py-1 px-5 rounded-sm"
-          >
-            Add
-          </button>
-          <Toaster />
-        </div>
-        <div tw="flex flex-col w-40 h-full mr-5">
-          <span>Search</span>
-          <input
-            type="text"
-            tw="border-2 border-black "
-            value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
-          />
-        </div>
-        <Switch
-          height={30}
-          width={80}
-          onChange={() => {
-            setSortDate(!sortDate);
-          }}
-          checked={sortDate}
-          checkedIcon={
-            <div tw="flex justify-center items-center h-full">Date</div>
-          }
-          uncheckedIcon={
-            <div tw="flex justify-center items-center h-full">Name</div>
-          }
-        />
       </div>
-      <div tw="flex flex-col">{active && renderActivity()}</div>
-    </div>
+    </>
   );
 };
 export default App;
