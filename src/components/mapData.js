@@ -6,8 +6,10 @@ import { IconContext } from "react-icons";
 
 export const MapData = ({ e, i, deleteHandler }) => {
   if (localStorage.getItem(e) !== null) {
-    let dueDate = localStorage.getItem(e).split(" ").slice(0, 3).join(" ");
-
+    let dueDate = localStorage.getItem(e).split(" ")
+    dueDate[1] = `${dueDate[1]}th`
+    dueDate = dueDate.slice(0, 3).join(" ");
+    console.log(dueDate)
     return (
       <div tw="m-5 p-6 border-2 bg-gray-700 border-gray-600 shadow-md rounded-lg flex justify-between items-center w-full font-poppins ">
         <div tw="w-1/2">

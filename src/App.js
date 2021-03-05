@@ -41,12 +41,28 @@ const App = () => {
     "November",
     "December",
   ];
+  const obj = {
+    "January" : "1",
+    "February" : "2",
+    "March" : "3",
+    "April" : "4",
+    "May" : "5",
+    "June" : "6",
+    "July" : "7",
+    "August" : "8",
+    "September" : "9",
+    "October" : "10",
+    "November" : "11",
+    "December" : "12"
+
+  }
 
   useEffect(() => {
     for (let i = 0; i < length; i++) {
       let activity = localStorage.key(i);
-      let dueDate = localStorage.getItem(activity).split(" ");
-      data.push({ activity: activity, due: dueDate[3] });
+      let dueDate = localStorage.getItem(activity)
+      dueDate = dueDate.split(" ")
+      data.push({ activity: activity, due: `${obj[dueDate[0]]}/${dueDate[1]}/${dueDate[2]}` });
     }
     setActive(!active);
     // eslint-disable-next-line
@@ -58,7 +74,7 @@ const App = () => {
       let getDay = startDate.getDate();
       let month = monthArray[monthIndex];
       let year = startDate.getFullYear();
-      let dueDate = `${month} ${getDay}th ${year}`;
+      let dueDate = `${month} ${getDay} ${year}`;
       let due = `${monthIndex+1}/${getDay}/${year}`
       
       data.push({ activity: value, due: due });
@@ -105,6 +121,7 @@ const App = () => {
       data.sort((a, b) => {
         return new Date(a.due).getTime() - new Date(b.due).getTime() ;
       });
+      
     }
     if (data.length !== 0 && searchVal === "") {
       return data.map((e, i) => {
@@ -113,6 +130,7 @@ const App = () => {
     } else {
       return filtered();
     }
+    
   };
 
   return (
